@@ -2,15 +2,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 -- setup das portas
-entity mult_array_16x16 is
+entity multiplier is
     Port ( 
         A : in  STD_LOGIC_VECTOR (15 downto 0);
         B : in  STD_LOGIC_VECTOR (15 downto 0);
         P : out STD_LOGIC_VECTOR (31 downto 0)
     );
-end mult_array_16x16;
+end multiplier;
 
-architecture Structural of mult_array_16x16 is
+architecture Structural of multiplier is
     -- Matrizes 17x17 para cobrir todas as propagações i+1 e j+1
     type matrix is array (0 to 16, 0 to 16) of STD_LOGIC;
     signal s : matrix := (others => (others => '0')); 

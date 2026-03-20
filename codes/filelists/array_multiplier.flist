@@ -1,0 +1,2 @@
+$(ROOT)/codes/Array_multiplier/bloco_basico_mult_array.vhd
+$(ROOT)/codes/Array_multiplier/mult_array_16x16.vhd

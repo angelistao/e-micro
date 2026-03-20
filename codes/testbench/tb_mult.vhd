@@ -8,7 +8,7 @@ architecture Behavioral of tb_mult is
     signal A, B : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal P    : STD_LOGIC_VECTOR(31 downto 0);
 begin
-    uut: entity work.mult_array_16x16 port map (A => A, B => B, P => P);
+    uut: entity work.multiplier port map (A => A, B => B, P => P);
 
     process
     begin
