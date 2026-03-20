@@ -1,4 +1,5 @@
-<img width="1020" height="655" alt="Screenshot from 2026-03-08 18-01-27" src="https://github.com/user-attachments/assets/abd19989-ea37-464f-b27a-a36e7bdd1047" />
+
+<img width="1020" height="655" alt="Screenshot from 2026-03-08 18-01-27" src="https://github.com/user-attachments/assets/96f260ad-9236-4786-8ea5-822724255daa" />
 
 
 Sobre o Multiplicador de Array 16x16 em VHDL
