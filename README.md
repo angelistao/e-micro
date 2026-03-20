@@ -1,64 +1,37 @@
+# Desenvolvimento de Multiplicadores Array e Karatsuba em Hardware
 
-<img width="1020" height="655" alt="Screenshot from 2026-03-08 18-01-27" src="https://github.com/user-attachments/assets/96f260ad-9236-4786-8ea5-822724255daa" />
+Este repositório tem como objetivo versionar o desenvolvimento de um multiplicador Karatsuba e um Array, de 16 bits, em hardware, desenvolvidos para serem apresentados no SIM 2026.
 
+## Organização dos Diretórios
 
-Sobre o Multiplicador de Array 16x16 em VHDL
+e-micro
+ │
+ │──codes                       --Armazena todos os arquivos em HDL
+ │    │──Array_multiplier       --Arquivos do multiplicador Array
+ │    │──filelists              --Lista de arquivos para carregar no simulador
+ │    │──Karatsuba_multiplier   --Arquivos do multiplicador Karatsuba
+ │    │──util                   --Arquivos comuns a todos os multiplicadores
+ │    └──multiplier.v           --HDL do multiplicador padrão do Genus
+ │
+ │──schematic                   --Armazena todos os esquemáticos no Logisim
+ │
+ └──synthesis                   --Armazena todos os arquivos para a síntese lógica
+      │──inputs                 --Arquivos de entrada para o Genus
+      │──outputs                --Arquivos de saída do Genus
+      |    │──deliverables      --Arquivos entregáveis para a próxima etapa
+      |    └──reports           --Relatórios acerca da síntese lógica
+      └──work                   --Diretório para armezenar arquivos temporários
 
+## Aplicação
 
-Decidi fazer os testes vhdl via as ferramentas abaixo por julgar muito mais simples em poucas linhas de comando já ter os resultados inclusive de forma visual.
+Para rodar a simulação do multiplicador utilize o comando:
 
-**GHDL: "Um simulador e compilador de código aberto para a linguagem VHDL. Ele permite analisar a sintaxe, elaborar o design e executar simulações de forma extremamente leve e rápida, sem a complexidade de interfaces pesadas."
-
-GTKWave: "Um visualizador de ondas (waveforms) totalmente integrado, utilizado para depurar o comportamento temporal dos sinais lógicos."**
-
-
-## Arquitetura do projeto
-
-Célula Básica (bloco_basico_mult_array.vhd): Implementa a lógica de um Full Adder combinado com uma porta AND para gerar e somar os produtos parciais.
-
-Multiplicador (mult_array_16x16.vhd): Instancia uma grade de 16x16 células, gerindo a propagação de Carry e Sum através de matrizes de sinais internos para garantir o cálculo correto dos pesos binários.
-
-Testbench (tb_mult.vhd): Fornece estímulos de teste, incluindo casos críticos como 2×3, 10×5 e o valor máximo de 16 bits (65535×2).
-
-## 🚀 Como Executar
-
-!!! Instalar GHDL e o GTKWave instalados no teu sistema Linux.
-
-## 1. Compilação e Análise
-
-Analisa os ficheiros na ordem de dependência (da base para o topo):
-
-```bash
-
-ghdl -a bloco_basico_mult_array.vhd
-ghdl -a mult_array_16x16.vhd
-ghdl -a tb_mult.vhd
+```
+make multiplier_xcelium GUI=[1 | 0] MULT=[array | karatsuba | standard]
 ```
 
-## 2. Elaboração e Simulação
-
-Gera o executável da simulação e exporta os resultados para um ficheiro de ondas .vcd:
-
-```bash
-
-ghdl -e tb_mult
-ghdl -r tb_mult --vcd=waves.vcd
+Para rodar a síntese lógica utilize o comando:
 ```
-
-## 3. Visualização
-
-Abrir os resultados no GTKWave:
-
-```bash
-gtkwave waves.vcd
+make run_logical_synth FREQ_MHZ=[50(default)] OP_CORNER=[slow | fast] MULT=[array | karatsuba | standard]
 ```
-
-📈 Resultados Esperados
-
-Na simulação, verificar que os seguintes marcos temporais apareçam (pode-se alterar para decimal, binário, hex, etc. selecionando uma das portas na aba ao lado esquerdo da simulação e expandindo a opção 'Data format'):
-
-   0-10ns: 2×3=6.
-
-   10-20ns: 10×5=50.
-
-   20-30ns: 65535×2=131070.
+     
