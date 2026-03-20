@@ -2,8 +2,11 @@
 
 Este repositório tem como objetivo versionar o desenvolvimento de um multiplicador Karatsuba e um Array, de 16 bits, em hardware, desenvolvidos para serem apresentados no SIM 2026.
 
+As descrições dos circuitos foram feitas majoritariamente em VHDL, enquanto que os testbenchs em SystemVerilog.
+
 ## Organização dos Diretórios
 
+```
 e-micro
  │
  │──codes                       --Armazena todos os arquivos em HDL
@@ -21,6 +24,7 @@ e-micro
       |    │──deliverables      --Arquivos entregáveis para a próxima etapa
       |    └──reports           --Relatórios acerca da síntese lógica
       └──work                   --Diretório para armezenar arquivos temporários
+```
 
 ## Aplicação
 
