@@ -10,6 +10,7 @@ set ROOT_DIR $env(ROOT)
 set freq_mhz $env(FREQ_MHZ)
 set CORNER $env(OP_CORNER)
 set MULTIPLIER $env(MULT)
+set DATA_WIDTH $env(WIDTH)
 
 # ---------------------------------------------------------------
 # ------------ Setting paths from archivers ---------------------
@@ -88,9 +89,9 @@ puts ""
 puts ""
 
 if {$MULTIPLIER == "karatsuba"} {
-  puts "ainda não tem"
+ puts "ainda não tem"
 } elseif {$MULTIPLIER == "standard"} {
-  read_hdl -v2001 ${ROOT_DIR}/codes/multiplier.v
+ read_hdl -v2001 ${ROOT_DIR}/codes/multiplier.v
 } else {
   read_hdl -language vhdl ${ROOT_DIR}/codes/Array_multiplier/bloco_basico_mult_array.vhd
   read_hdl -language vhdl ${ROOT_DIR}/codes/Array_multiplier/mult_array_16x16.vhd
@@ -102,7 +103,7 @@ puts ""
 puts ""
 puts  "INFO: Encerrando Leitura do HDL"
 for {set i 0} {$i < 10} {set i [expr $i + 1]} {puts ""}
-grep "INFO: Iniciando Leitura do HDL" genus.log -A 40 > "${REPORTS_PATH}${freq_mhz}/${CORNER}/log_filter.log"
+grep "INFO: Iniciando Leitura do HDL" genus.log -A 40 > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/log_filter.log"
 
 
 
@@ -116,15 +117,15 @@ puts  "INFO: Iniciando Elaboração"
 puts ""
 puts ""
 
-elaborate $DESIGN
+elaborate $DESIGN -parameters ${DATA_WIDTH}
 check_design
 
 puts ""
 puts ""
 puts  "INFO: Encerrando Elaboração"
 for {set i 0} {$i < 10} {set i [expr $i + 1]} {puts ""}
-grep "INFO: Iniciando Elaboração" genus.log -A 100 >> "${REPORTS_PATH}${freq_mhz}/${CORNER}/log_filter.log"
-check_design > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_check_design.rpt"
+grep "INFO: Iniciando Elaboração" genus.log -A 100 >> "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/log_filter.log"
+check_design > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_check_design.rpt"
 
 
 
@@ -140,10 +141,10 @@ puts ""
 puts ""
 puts  "INFO: Encerrando Leitura das Constraints"
 for {set i 0} {$i < 10} {set i [expr $i + 1]} {puts ""}
-grep "INFO: Iniciando Elaboração" genus.log -A 90 >> "${REPORTS_PATH}${freq_mhz}/${CORNER}/log_filter.log"
+grep "INFO: Iniciando Elaboração" genus.log -A 90 >> "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/log_filter.log"
 
 
-report_timing -lint > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_constraints_summary.rpt"
+report_timing -lint > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_constraints_summary.rpt"
 
 
 # Allow and dimiss the use of some cells
@@ -174,18 +175,19 @@ syn_map
 # ---------------------------------------------------------------
 set_db lp_power_unit uW 
 
-write_hdl > "${DELIVERABLES_PATH}${freq_mhz}/${CORNER}/${DESIGN}.v"
-write_sdf > "${DELIVERABLES_PATH}${freq_mhz}/${CORNER}/${DESIGN}.sdf"
-report_timing > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_timing.rpt"
-report_area -hinst multiplier_inst > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_area.rpt"
-report_area -hinst multiplier_inst -detail > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_area_detail.rpt"
-report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_power.rpt"
-report_gates -hinst multiplier_inst > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_gates.rpt"
-report_hierarchy > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_hierarchy.rpt"
+write_hdl > "${DELIVERABLES_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}.v"
+write_sdf > "${DELIVERABLES_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}.sdf"
+report_timing > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_timing.rpt"
+report_area -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_area.rpt"
+report_area -hinst multiplier_inst -detail > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_area_detail.rpt"
+report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_power.rpt"
+report_gates -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_gates.rpt"
+report_hierarchy > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_hierarchy.rpt"
 
 
-exec grep {Slack:=  } "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_timing.rpt" > "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
-exec grep {multiplier_inst} "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_area.rpt" >> "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
-exec grep {  Subtotal} "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_power.rpt" >> "${REPORTS_PATH}${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
+exec grep {Slack:=  } "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_timing.rpt" > "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
+exec grep {multiplier_inst} "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_area.rpt" >> "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
+exec grep {  Subtotal} "${REPORTS_PATH}${MULTIPLIER}/${freq_mhz}/${CORNER}/${DESIGN}_power.rpt" >> "${REPORTS_PATH}${MULTIPLIER}/
+${freq_mhz}/${CORNER}/${DESIGN}_PPA.rpt"
 
 report_timing

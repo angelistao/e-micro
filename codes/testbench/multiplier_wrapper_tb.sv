@@ -1,16 +1,31 @@
 module multiplier_wrapper_tb;
 
     // Troquem esse parâmetro para alterar o número de testes
-    localparam TESTS_NUM = 1000;
+
+    // Troquem esse parâmetro para alterar o número de testes
+    `ifdef TESTS_NUM
+        localparam TESTS_NUM_h = `TESTS_NUM;
+    `else
+        localparam TESTS_NUM_h = 100;
+    `endif
+
+    `ifdef WIDTH
+        localparam DATA_WIDTH = `WIDTH;
+    `else
+        localparam DATA_WIDTH = 16;
+    `endif
+
     localparam CLOCK_PERIOD = 50; //ns
 
     logic clk, rst;
-    logic [15:0] A_tb, B_tb;
-    logic [31:0] S_tb;
+    logic [DATA_WIDTH-1:0] A_tb, B_tb;
+    logic [ DATA_WIDTH*2-1:0] S_tb;
     int i, errors, tests;
 
     // troquem "multiplier" pelo nome da entity de vocês
-    multiplier_wrapper DUT (
+    multiplier_wrapper #(
+        .N(DATA_WIDTH)
+    ) DUT (
         .clk_i    ( clk  ),
         .rst_i    ( rst  ),
         .opA_i    ( A_tb ),
@@ -20,17 +35,17 @@ module multiplier_wrapper_tb;
 
 
     task SetAB (
-        input logic[15:0] A,
-        input logic[15:0] B
+        input logic[DATA_WIDTH-1:0] A,
+        input logic[DATA_WIDTH-1:0] B
     );
         A_tb = A;
         B_tb = B;
     endtask
 
     task TestResult();
-        logic [31:0] S;
+        logic [DATA_WIDTH*2-1:0] S;
 
-        S = {16'h0000, A_tb} * {16'h0000, B_tb};
+        S = {{DATA_WIDTH{1'b0}}, A_tb} * {{DATA_WIDTH{1'b0}}, B_tb};
         errors = (S_tb==S) ? errors : errors + 1; 
 
         // Se quiserem ver os números no terminal em binário altere %d para %h e para binário %b
@@ -53,8 +68,8 @@ module multiplier_wrapper_tb;
         $display(  "|   A     |   b     |      S       | ERRO? | Time");
         $display(  "+---------+---------+--------------+-------+--------");
 
-        A_tb = 16'h0000;
-        B_tb = 16'h0000;
+        A_tb = {DATA_WIDTH{1'b0}};
+        B_tb = {DATA_WIDTH{1'b0}};
 
         clk=0;
         rst=0;
@@ -77,7 +92,7 @@ module multiplier_wrapper_tb;
         
 
         
-        for (i=0 ; i<TESTS_NUM ; i=i+1) begin
+        for (i=0 ; i<TESTS_NUM_h ; i=i+1) begin
             #(2*CLOCK_PERIOD/10)
             SetAB($urandom, $urandom);
             #(8*CLOCK_PERIOD/10 + 2*CLOCK_PERIOD)
@@ -87,7 +102,7 @@ module multiplier_wrapper_tb;
         #CLOCK_PERIOD
 
         $display(  "+---------+---------+--------------+-------+--------");
-        $display(  "| Numero de Testes : %0d", TESTS_NUM+tests);
+        $display(  "| Numero de Testes : %0d", TESTS_NUM_h+tests);
         $display(  "| Numero de Erros  : %0d", errors);
         $display(  "+---------------------------------------------------\n");
         $finish;

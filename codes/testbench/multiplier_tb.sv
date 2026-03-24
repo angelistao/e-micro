@@ -1,34 +1,44 @@
 module multiplier_tb;
 
     // Troquem esse parâmetro para alterar o número de testes
-    localparam TESTS_NUM = 10000;
+    `ifdef TESTS_NUM
+        localparam TESTS_NUM_h = `TESTS_NUM;
+    `else
+        localparam TESTS_NUM_h = 100;
+    `endif
 
-    logic [15:0] A_tb, B_tb;
-    logic [31:0] P_tb;
-    int i, errors;
+    `ifdef WIDTH
+        localparam DATA_WIDTH = `WIDTH;
+    `else
+        localparam DATA_WIDTH = 16;
+    `endif
+
+    logic [DATA_WIDTH-1:0] A_tb, B_tb;
+    logic [(2*DATA_WIDTH)-1:0] P_tb;
+    int i, j, errors;
 
     // troquem "multiplier" pelo nome da entity de vocês
-    multiplier DUT (
+    multiplier #(
+        .N(DATA_WIDTH)
+    ) DUT (
         .A( A_tb ),
         .B( B_tb ),
         .P( P_tb )
     );
 
     task TestResult(
-        input logic[15:0] A,
-        input logic[15:0] B
+        input logic[DATA_WIDTH-1:0] A,
+        input logic[DATA_WIDTH-1:0] B
     );
-        logic [31:0] S;
+        logic [(2*DATA_WIDTH)-1:0] S;
 
         
-        S = {16'h0000, A} * {16'h0000, B};
+        S = {{(DATA_WIDTH/2){1'b0}}, A} * {{(DATA_WIDTH/2){1'b0}}, B};
         errors = (P_tb==S) ? errors : errors + 1; 
 
         // Se quiserem ver os números no terminal em binário altere %d para %h e para binário %b
         $display(  "|  %h  |  %h  |  %h  |  %s  |%0d", A_tb, B_tb, P_tb, (P_tb==S ? "   ": "SIM") ,$time);
         $fdisplay(log_file,  "|  %h  |  %h  |  %h  |  %s  |%0d", A_tb, B_tb, P_tb, (P_tb==S ? "   ": "SIM") ,$time);
-
-
     endtask
 
     int log_file;
@@ -57,28 +67,34 @@ module multiplier_tb;
             // B_tb = 16'hXXXX; 
             //#1 // #1 adiciona um delay de 1 seg na forma de onda
 
-        A_tb = 16'h000A;
-        B_tb = 16'h0005;
-        #1
-        TestResult(A_tb, B_tb);
-        #1
+        // A_tb = 16'h000A;
+        // B_tb = 16'h0005;
+        // #1
+        // TestResult(A_tb, B_tb);
+        // #1
 
-        A_tb = 16'h0002;
-        B_tb = 16'h0003;
-        #1
-        TestResult(A_tb, B_tb);
-        #1
+        // A_tb = 16'h0002;
+        // B_tb = 16'h0003;
+        // #1
+        // TestResult(A_tb, B_tb);
+        // #1
 
-        A_tb = 16'hFFFF;
-        B_tb = 16'h0002;
-        #1
-        TestResult(A_tb, B_tb);
-        #1
+        // A_tb = 64'hFFFFFFFFFFFFFFFF;
+        // B_tb = 64'h0002000200020002;
+        // #1
+        // TestResult(A_tb, B_tb);
+        // #1
         
-        for (i=0 ; i<TESTS_NUM ; i=i+1) begin
+        for (i=0 ; i<TESTS_NUM_h ; i=i+1) begin
             #1
-            A_tb = $urandom; //Cria números aleatórios
-            B_tb = $urandom;
+            //A_tb += for(j=0; j<$ceil(DATA_WIDTH/32) ; j=j+1) $urandom; //Cria números aleatórios
+            //A_tb = '0;
+
+            for (int j = 0; j < $ceil((DATA_WIDTH+31)/32); j=j+1) begin
+                A_tb = {A_tb,  $urandom};
+            end
+
+            B_tb = {A_tb, A_tb[DATA_WIDTH-1:DATA_WIDTH/2]};
             #1
             TestResult(A_tb, B_tb);
         end
@@ -86,12 +102,12 @@ module multiplier_tb;
         #1
 
         $display(  "+--------+--------+------------+-------+--------");
-        $display(  "| Numero de Testes : %0d", TESTS_NUM);
+        $display(  "| Numero de Testes : %0d", TESTS_NUM_h);
         $display(  "| Numero de Erros  : %0d", errors);
         $display(  "+-----------------------------------------------\n");
 
         $fdisplay(log_file,  "+--------+--------+------------+-------+--------");
-        $fdisplay(log_file,  "| Numero de Testes : %0d", TESTS_NUM);
+        $fdisplay(log_file,  "| Numero de Testes : %0d", TESTS_NUM_h);
         $fdisplay(log_file,  "| Numero de Erros  : %0d", errors);
         $fdisplay(log_file,  "+-----------------------------------------------\n");
         $finish;
