@@ -1,2 +1,9 @@
-$(ROOT)/codes/Array_multiplier/bloco_basico_mult_array.vhd
-$(ROOT)/codes/Array_multiplier/mult_array_16x16.vhd
+$(ROOT)/codes/karatsuba_multiplier/CLA_xBits.vhd
+$(ROOT)/codes/karatsuba_multiplier/Karatsuba2b_CLA.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba3b_aux.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba3b.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba4b.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba6b.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba9b.vhd
+$(ROOT)/codes/karatsuba_multiplier/karatsuba16b.vhd
+

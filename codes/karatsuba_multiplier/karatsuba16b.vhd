@@ -1,17 +1,20 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity karatsuba16b is
+entity multiplier is
+generic (
+        N : integer := 16
+    );
 Port (
 
-A16b : in std_logic_vector(15 downto 0);
-B16b : in std_logic_vector(15 downto 0);
+A : in std_logic_vector(15 downto 0);
+B : in std_logic_vector(15 downto 0);
 
-S32b : out std_logic_vector(31 downto 0)
+P : out std_logic_vector(31 downto 0)
 );
-end karatsuba16b;
+end multiplier;
 
-architecture behavioral of karatsuba16b is
+architecture behavioral of multiplier is
 
 component cla_Xbits is
    generic (x : integer);
@@ -56,15 +59,15 @@ begin
 
 ADD1: karatsuba9b
 	port map(
-	A9b => '0' & A16b(15 downto 8),
-	B9b => '0' & B16b (15 downto 8),
+	A9b => '0' & A(15 downto 8),
+	B9b => '0' & B (15 downto 8),
 	S18b => mult1
 );
 
 ADD2: karatsuba9b
 	port map(
-	A9b => '0' & A16b(7 downto 0),
-	B9b => '0' & B16b (7 downto 0),
+	A9b => '0' & A(7 downto 0),
+	B9b => '0' & B (7 downto 0),
 	S18b => mult3
 );
 
@@ -72,8 +75,8 @@ ADD2: karatsuba9b
 ADD3: cla_Xbits
 	generic map (x => 9)
 	port map(
-	a => '0' & A16b(15 downto 8),
-	b => '0' & A16b(7 downto 0),
+	a => '0' & A(15 downto 8),
+	b => '0' & A(7 downto 0),
 	cin => '0',
 	S => ab,
 	cout => open --
@@ -83,8 +86,8 @@ ADD3: cla_Xbits
 ADD4: cla_Xbits
 	generic map (x => 9)
 	port map(
-	a => '0' & B16b(15 downto 8),
-	b => '0' & B16b(7 downto 0),
+	a => '0' & B(15 downto 8),
+	b => '0' & B(7 downto 0),
 	cin => '0',
 	S => cd,
 	cout => open --
@@ -133,7 +136,7 @@ ADD9: cla_Xbits
 	a => result_parcial,
 	b => "00000000000000" & mult3,
 	cin => '0',
-	S => S32b,
+	S => P,
 	cout => open --
 );
 
