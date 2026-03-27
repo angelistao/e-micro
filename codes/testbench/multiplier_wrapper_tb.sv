@@ -15,7 +15,7 @@ module multiplier_wrapper_tb;
         localparam DATA_WIDTH = 16;
     `endif
 
-    localparam CLOCK_PERIOD = 50; //ns
+    localparam CLOCK_PERIOD = 2000; //ms
 
     logic clk, rst;
     logic [DATA_WIDTH-1:0] A_tb, B_tb;
@@ -23,7 +23,16 @@ module multiplier_wrapper_tb;
     int i, errors, tests;
 
     // troquem "multiplier" pelo nome da entity de vocês
-    multiplier_wrapper #(
+    `ifdef POS_SYNTH
+    multiplier_wrapper_N512 DUT (
+        .clk_i    ( clk  ),
+        .rst_i    ( rst  ),
+        .opA_i    ( A_tb ),
+        .opB_i    ( B_tb ),
+        .result_o ( S_tb )
+    );
+    `else
+        multiplier_wrapper #(
         .N(DATA_WIDTH)
     ) DUT (
         .clk_i    ( clk  ),
@@ -32,6 +41,7 @@ module multiplier_wrapper_tb;
         .opB_i    ( B_tb ),
         .result_o ( S_tb )
     );
+    `endif
 
 
     task SetAB (
@@ -59,7 +69,7 @@ module multiplier_wrapper_tb;
     initial begin
 
         // Esse arquivo é para carregar no GTK Wave se estiverem usando
-        $dumpfile("dump.vcd");
+        $dumpfile("multiplier_wrapper.vcd");
         $dumpvars(0, DUT);
 
         errors = 0;

@@ -1,9 +1,11 @@
 export ROOT       = $(CURDIR)
 export DESIGN_    = multiplier_wrapper
-export FREQ_MHZ   ?= 50
+export FREQ_MHZ   ?= 0.5
 export OP_CORNER  ?= slow
        TESTS_DIR  = ${ROOT}/codes/testbench
 export MULT       ?= array
+
+VERILOG_PATH = /home/tools/design_kits/cadence/GPDK045/gsclib045_all_v4.4/gsclib045_lvt/verilog/slow_vdd1v0_basicCells_lvt.v
 
 GUI        ?= 0
 TB         ?= 1
@@ -53,3 +55,9 @@ run_logical_synth:
 	cd ${ROOT}/synthesis/work && \
 	rm -rf * && \
 	genus -f $(ROOT)/synthesis/inputs/synth.tcl  -overwrite \
+
+multiplier_pos_synth:
+	cd ${ROOT}/synthesis/work && \
+	xmsdfc -iocondsort -compile $(ROOT)/synthesis/outputs/deliverables/last/multiplier_wrapper.sdf && \
+	xrun -timescale 1us/1ns -64bit -v200x -v93 $(VERILOG_PATH) $(ROOT)/synthesis/outputs/deliverables/last/multiplier_wrapper.v $(FLAGS) $(TESTS_DIR)/multiplier_wrapper_tb.sv -top multiplier_wrapper_tb -sdf_cmd_file $(ROOT)/synthesis/outputs/deliverables/last/sdf_cmd_file.cmd +define+POS_SYNTH
+#xrun -timescale 1us/1ns -64bit -v200x -v93 $(VERILOG_PATH) $(ROOT)/synthesis/outputs/deliverables/last/multiplier_wrapper.v $(FLAGS) $(TESTS_DIR)/multiplier_wrapper_tb.sv -top multiplier_wrapper_tb +define+POS_SYNTH

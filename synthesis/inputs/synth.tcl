@@ -10,20 +10,32 @@ set ROOT_DIR $env(ROOT)
 set freq_mhz $env(FREQ_MHZ)
 set CORNER $env(OP_CORNER)
 set MULTIPLIER $env(MULT)
+set LVT 1
 set DATA_WIDTH $env(WIDTH)
 
 # ---------------------------------------------------------------
 # ------------ Setting paths from archivers ---------------------
 # ---------------------------------------------------------------
 
+set_db auto_super_thread true
+set_db super_thread_rsh_command ssh 
+set_db max_cpus_per_server 24
+set_multi_cpu_usage -local_cpu 24
+
+
+
 
 # Set the paths to search the libs and LEF files
-set_db init_lib_search_path { \
-  /home/tools/design_kits/cadence/GPDK045/gsclib045_svt_v4.4/gsclib045/timing \
-  /home/tools/design_kits/cadence/GPDK045/giolib045_v3.3/timing \
-  /home/tools/design_kits/cadence/GPDK045/gsclib045_svt_v4.4/gsclib045/lef/ \
-  /home/tools/design_kits/cadence/GPDK045/giolib045_v3.3/lef/ \
-}
+  set_db init_lib_search_path { \
+    /home/tools/design_kits/cadence/GPDK045/gsclib045_svt_v4.4/gsclib045/timing \
+    /home/tools/design_kits/cadence/GPDK045/gsclib045_all_v4.4/gsclib045_lvt/timing \
+    /home/tools/design_kits/cadence/GPDK045/giolib045_v3.3/timing \
+    /home/tools/design_kits/cadence/GPDK045/gsclib045_all_v4.4/gsclib045_lvt/lef \
+    /home/tools/design_kits/cadence/GPDK045/gsclib045_svt_v4.4/gsclib045/lef \
+    /home/tools/design_kits/cadence/GPDK045/giolib045_v3.3/lef \
+  }
+
+
 
 # Set the path to search SDC files
 set SDC_SEARCH_PATH        ${ROOT_DIR}/synthesis/inputs/
@@ -50,17 +62,19 @@ set QRC_PATH          /home/tools/design_kits/cadence/GPDK045/gpdk045_v_6_0/qrc/
 switch -- $CORNER {
 
     "slow" {
-        read_libs {
-            slow_vdd1v0_basicCells.lib
-        }
+      if {$LVT} {
+        read_libs slow_vdd1v0_basicCells_lvt.lib
+      } else {
+        read_libs slow_vdd1v0_basicCells.lib
+      }  
     }
 
     "fast" {
-        read_libs {
-            fast_vdd1v2_basicCells.lib
-        }
-
-        set_db qrc_tech_file ${QRC_PATH}rcworst/qrcTechFile
+        if {$LVT} {
+        read_libs fast_vdd1v0_basicCells_lvt.lib
+      } else {
+        read_libs fast_vdd1v0_basicCells.lib
+      }
     }
 
     "typical" {
@@ -74,11 +88,18 @@ switch -- $CORNER {
     }
 }
 
-
-read_physical -lefs {                             \
+if {$LVT} {
+  read_physical -lefs {                             \
+    gsclib045_tech.lef                              \
+    gsclib045_lvt_macro.lef                             \
+  }
+} else {
+  read_physical -lefs {                             \
   gsclib045_tech.lef                              \
   gsclib045_macro.lef                             \
 }
+}
+
 
 set_db qrc_tech_file  ${QRC_PATH}rcworst/qrcTechFile
 
@@ -115,6 +136,7 @@ check_design > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${COR
 # Read constraints SDC files
 read_sdc "${SDC_SEARCH_PATH}constraints.sdc"
 report_timing -lint > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_constraints_summary.rpt"
+#check_timing_intent
 
 
 # Allow and dimiss the use of some cells
@@ -147,11 +169,21 @@ set_db lp_power_unit uW
 
 write_hdl > "${DELIVERABLES_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}.v"
 write_sdf > "${DELIVERABLES_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}.sdf"
+write_hdl > "${DELIVERABLES_PATH}last/${DESIGN}.v"
+write_sdf > "${DELIVERABLES_PATH}last/${DESIGN}.sdf"
 report_timing > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_timing.rpt"
 report_area -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_area.rpt"
 report_area -hinst multiplier_inst -detail > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_area_detail.rpt"
+report_area -hinst multiplier_inst -normalize_with_gate NAND2X1 > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_KGE.rpt"
 report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_power.rpt"
 report_gates -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_gates.rpt"
 report_hierarchy > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_hierarchy.rpt"
+report_design_rules > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_design_rules.rpt"
+report_qor > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_qor.rpt"
 
 report_timing
+
+proc report_power_with_vcd {} {
+    global REPORTS_PATH MULTIPLIER DATA_WIDTH freq_mhz CORNER DESIGN
+    report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_power_with_vcd.rpt"
+}
