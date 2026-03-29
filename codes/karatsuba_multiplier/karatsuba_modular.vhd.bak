@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity karatsuba_mult is
-    Generic (N : integer := 16);
+    Generic (N : integer := 32);
     Port (
 	A : in unsigned(N-1 downto 0);
 	B : in unsigned(N-1 downto 0);
