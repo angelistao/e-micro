@@ -86,7 +86,7 @@ port map (
 add3a <= subtracao & '0';
 add3b <= '0' & mult1 & "00";
 
-ADD3: cla_Xbits
+ADD3: cla_Xbits -- somando resultado final
 generic map (x => 4)
 port map(
     a => add3a,
