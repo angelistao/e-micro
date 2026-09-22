@@ -28,7 +28,7 @@ module multiplier_wrapper #(
     end
 
     // Instancia o Multiplicador
-    multiplier #(
+    multiplier_N8 #(
         .N(N)
     ) multiplier_inst (
         .A(reg_opA_s),

@@ -24,7 +24,7 @@ module multiplier_wrapper_tb;
 
     // troquem "multiplier" pelo nome da entity de vocês
     `ifdef POS_SYNTH
-    multiplier_wrapper_N512 DUT (
+    multiplier_wrapper DUT (
         .clk_i    ( clk  ),
         .rst_i    ( rst  ),
         .opA_i    ( A_tb ),

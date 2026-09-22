@@ -57,7 +57,6 @@ set QRC_PATH          /home/tools/design_kits/cadence/GPDK045/gpdk045_v_6_0/qrc/
 
 # Load the TLEF and LEF files
 
-
 # Load the standard cells libraries : STD, MB, IO
 switch -- $CORNER {
 
@@ -88,6 +87,7 @@ switch -- $CORNER {
     }
 }
 
+
 if {$LVT} {
   read_physical -lefs {                             \
     gsclib045_tech.lef                              \
@@ -100,20 +100,23 @@ if {$LVT} {
 }
 }
 
+suspend
 
 set_db qrc_tech_file  ${QRC_PATH}rcworst/qrcTechFile
+
+# read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/CLA_xBits.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/Karatsuba2b_CLA.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba3b_aux.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba3b.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba4b.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba6b.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba9b.vhd
+#   read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba16b.vhd
 
 
 # Load the HDL filelist
 if {$MULTIPLIER == "karatsuba"} {
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/CLA_xBits.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/Karatsuba2b_CLA.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba3b_aux.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba3b.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba4b.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba6b.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba9b.vhd
-  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba16b.vhd
+  read_hdl -language vhdl ${ROOT_DIR}/codes/karatsuba_multiplier/karatsuba_modular.vhd
 } elseif {$MULTIPLIER == "standard"} {
   read_hdl -v2001 ${ROOT_DIR}/codes/multiplier.v
 } else {
@@ -174,7 +177,7 @@ write_sdf > "${DELIVERABLES_PATH}last/${DESIGN}.sdf"
 report_timing > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_timing.rpt"
 report_area -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_area.rpt"
 report_area -hinst multiplier_inst -detail > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_area_detail.rpt"
-report_area -hinst multiplier_inst -normalize_with_gate NAND2X1 > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_KGE.rpt"
+report_area -hinst multiplier_inst -normalize_with_gate NAND2X1LVT > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_KGE.rpt"
 report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_power.rpt"
 report_gates -hinst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_gates.rpt"
 report_hierarchy > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_hierarchy.rpt"
@@ -185,5 +188,6 @@ report_timing
 
 proc report_power_with_vcd {} {
     global REPORTS_PATH MULTIPLIER DATA_WIDTH freq_mhz CORNER DESIGN
+    read_vcd multiplier_wrapper.vcd
     report_power -unit uW -inst multiplier_inst > "${REPORTS_PATH}${MULTIPLIER}/N${DATA_WIDTH}/${freq_mhz}MHz/${CORNER}/${DESIGN}_power_with_vcd.rpt"
 }
