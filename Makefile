@@ -39,7 +39,7 @@ endif
 multiplier_wrapper_xcelium:
 	cd synthesis/work && \
 	rm -rf * && \
-	xrun -64bit -v200x -v93 $(CURDIR)/codes/karatsuba_modular.vhd $(CURDIR)/codes/decoder.v $(CURDIR)/codes/multiplier.v $(TESTS_DIR)/multiplier_tb.sv $(FLAGS) -top multiplier_tb
+	xrun -64bit -v200x -v93 -v2001 $(CURDIR)/codes/karatsuba_modular.vhd $(CURDIR)/codes/decoder.v $(CURDIR)/codes/multiplier_wrapper.v $(TESTS_DIR)/multiplier_tb.sv $(FLAGS) -top multiplier_tb
 
 run_logical_synth:
 	cd ${ROOT}/synthesis/work && \

@@ -1,4 +1,4 @@
-module riscv_mult_wrapper #(
+module multiplier_wrapper #(
     parameter N = 32   // 32 para RV32, 64 para RV64
 ) (
     input  wire             signed_A_i,   // decoder.signed_A_o
