@@ -1,118 +1,164 @@
 module multiplier_tb;
 
-    // Troquem esse parâmetro para alterar o número de testes
+    localparam CLK_PERIOD = 10;
+    localparam STAGES = 5;
     `ifdef TESTS_NUM
         localparam TESTS_NUM_h = `TESTS_NUM;
     `else
-        localparam TESTS_NUM_h = 100;
+        localparam TESTS_NUM_h = 16;
     `endif
 
-    `ifdef WIDTH
-        localparam DATA_WIDTH = `WIDTH;
-    `else
-        localparam DATA_WIDTH = 16;
-    `endif
 
-    logic [DATA_WIDTH-1:0] A_tb, B_tb;
-    logic [(2*DATA_WIDTH)-1:0] P_tb;
-    int i, j, errors;
+    logic clk, rst, sigA, sigB, upper, done, mult_on;
+    logic [31:0] A_op, B_op, answer;
+    logic [6:0] opcode, funct7;
+    logic [2:0] funct3;
 
-    // troquem "multiplier" pelo nome da entity de vocês
-    karatsuba_mult #(
-        .N(DATA_WIDTH)
-    ) DUT (
-        .A( A_tb ),
-        .B( B_tb ),
-        .P( P_tb )
+    reg [63:0] A_ext, B_ext, AxB;
+    int errors, tests;
+    logic [3:0] Instructions;
+
+    multiplier_top DUT (
+        .clk_i      ( clk     ),
+        .rst_i      ( rst     ),
+        .mult_en_i  ( mult_on ),
+        .op_A_i     ( A_op    ),
+        .op_B_i     ( B_op    ),
+        .signed_A_i ( sigA    ),
+        .signed_B_i ( sigB    ),
+        .upper_i    ( upper   ),
+        .result_o   ( answer  ),
+        .stall_o     ( done    )
     );
 
-    task TestResult(
-        input logic[DATA_WIDTH-1:0] A,
-        input logic[DATA_WIDTH-1:0] B
+    decoder decoder (
+        .opcode_i    ( opcode  ),
+        .funct3_i    ( funct3  ),
+        .funct7_i    ( funct7  ),
+
+        .mult_on_o   ( mult_on ),
+        //.div_on_o    (  ),
+        .signed_A_o  ( sigA    ),
+        .signed_B_o  ( sigB    ),
+        .upper_rem_o ( upper   )
     );
-        logic [(2*DATA_WIDTH)-1:0] S;
 
-        
-        S = {{(DATA_WIDTH/2){1'b0}}, A} * {{(DATA_WIDTH/2){1'b0}}, B};
-        errors = (P_tb==S) ? errors : errors + 1; 
 
-        // Se quiserem ver os números no terminal em binário altere %d para %h e para binário %b
-        $display(  "|  %h  |  %h  |  %h  |  %s  |%0d", A_tb, B_tb, P_tb, (P_tb==S ? "   ": "SIM") ,$time);
-        $fdisplay(log_file,  "|  %h  |  %h  |  %h  |  %s  |%0d", A_tb, B_tb, P_tb, (P_tb==S ? "   ": "SIM") ,$time);
-    endtask
+    task TestResult ( input logic [31:0] A, input logic [31:0] B, input logic [3:0] Instrs);
 
-    int log_file;
+        A_op = A;
+        B_op = B;
 
-    initial begin
-
-        // Esse arquivo é para carregar no GTK Wave se estiverem usando
-        $dumpfile("dump.vcd");
-        $dumpvars(0, DUT);
-        log_file = $fopen("multiplier_tb.log", "w");
-        errors = 0;
-
-        $display("\n+--------+--------+------------+-------+--------");
-        $display(  "|   A    |   b    |      S     | ERRO? | Time");
-        $display(  "+--------+--------+------------+-------+--------");
-
-        $fdisplay(log_file, "\n+--------+--------+------------+-------+--------");
-        $fdisplay(log_file,   "|   A    |   b    |      S     | ERRO? | Time");
-        $fdisplay(log_file,   "+--------+--------+------------+-------+--------");
-        
-
-         #1
-
-            // Se quiserem usar alguma combinação específica usem as 3 linhas abaixo:
-            //A_tb = 16'hXXXX; // Troquem XXXX pelo valor em hexadecimal
-            // B_tb = 16'hXXXX; 
-            //#1 // #1 adiciona um delay de 1 seg na forma de onda
-
-        // A_tb = 16'h000A;
-        // B_tb = 16'h0005;
-        // #1
-        // TestResult(A_tb, B_tb);
-        // #1
-
-        // A_tb = 16'h0002;
-        // B_tb = 16'h0003;
-        // #1
-        // TestResult(A_tb, B_tb);
-        // #1
-
-        // A_tb = 64'hFFFFFFFFFFFFFFFF;
-        // B_tb = 64'h0002000200020002;
-        // #1
-        // TestResult(A_tb, B_tb);
-        // #1
-        
-        for (i=0 ; i<TESTS_NUM_h ; i=i+1) begin
-            #1
-            //A_tb += for(j=0; j<$ceil(DATA_WIDTH/32) ; j=j+1) $urandom; //Cria números aleatórios
-            //A_tb = '0;
-
-            for (int j = 0; j < $ceil((DATA_WIDTH+31)/32); j=j+1) begin
-                A_tb = {A_tb,  $urandom};
-            end
-
-            B_tb = {A_tb, A_tb[DATA_WIDTH-1:DATA_WIDTH/2]};
-            #1
-            TestResult(A_tb, B_tb);
+        // MUL
+        if (Instrs[0] == 1'b1) begin
+            #(6*CLK_PERIOD)
+            funct3 = 3'b000;    
+            opcode = 7'b0110011; 
+            A_ext = {{32{A_op[31]}}, A_op};
+            B_ext = {{32{B_op[31]}}, B_op};
+            AxB = A_ext * B_ext;
+            #(CLK_PERIOD)
+            opcode = 7'b0110010; 
+            @(negedge done)
+            #((9*CLK_PERIOD)/10)
+            errors = (AxB[31:0]==answer) ? errors : errors+1;
+            tests = tests + 1;
+            $display(  "| MUL         | 0x%h | 0x%h | %s | %0d", AxB[31:0] ,answer, (AxB[31:0]==answer ? "     " : "ERROR"), $time );
         end
 
+        // MULH
+        if (Instrs[1] == 1'b1) begin
+            #(10*CLK_PERIOD)
+            funct3 = 3'b001;    
+            opcode = 7'b0110011; 
+            A_ext = {{32{A_op[31]}}, A_op};
+            B_ext = {{32{B_op[31]}}, B_op};
+            AxB = A_ext * B_ext;
+            #(CLK_PERIOD)
+            opcode = 7'b0110010; 
+            @(negedge done)
+            #((9*CLK_PERIOD)/10)
+            errors = (AxB[63:32]==answer) ? errors : errors+1;
+            tests = tests + 1;
+            $display(  "| MULH        | 0x%h | 0x%h | %s | %0d", AxB[63:32] ,answer, (AxB[63:32]==answer ? "     " : "ERROR"), $time );
+        end
+
+        // MULHSU
+        if (Instrs[2] == 1'b1) begin
+            #(7*CLK_PERIOD)
+            funct3 = 3'b010;
+            opcode = 7'b0110011; 
+            A_ext = {{32{A_op[31]}}, A_op};
+            B_ext = {32'h00000000, B_op};
+            AxB = A_ext * B_ext;
+            #(CLK_PERIOD)
+            opcode = 7'b0110010; 
+            @(negedge done)
+            #((9*CLK_PERIOD)/10)
+            errors = (AxB[63:32]==answer) ? errors : errors+1;
+            tests = tests + 1;
+            $display(  "| MULHSU      | 0x%h | 0x%h | %s | %0d", AxB[63:32] ,answer, (AxB[63:32]==answer ? "     " : "ERROR"), $time );
+        end
+
+        // MULHU
+        if (Instrs[3] == 1'b1) begin
+            #(17*CLK_PERIOD)
+            funct3 = 3'b011;
+            opcode = 7'b0110011; 
+            A_ext = {32'h00000000, A_op};
+            B_ext = {32'h00000000, B_op};
+            AxB = A_ext * B_ext;
+            #(CLK_PERIOD)
+            opcode = 7'b0110010; 
+            @(negedge done)
+            #((9*CLK_PERIOD)/10)
+            errors = (AxB[63:32]==answer) ? errors : errors+1;
+            tests = tests + 1;
+            $display(  "| MULHS       | 0x%h | 0x%h | %s | %0d", AxB[63:32] ,answer, (AxB[63:32]==answer ? "     " : "ERROR"), $time );  
+        end
+        $display(  "+-------------+------------+------------+-------+---------"); 
+    endtask
+
+
+    always #(CLK_PERIOD/2) clk <= ~clk;
+
+    initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars(0, DUT, decoder);
+        
+        clk = 0;
+        rst = 0;
+        errors = 0;
+        tests = 0;
+        Instructions = 4'b0000;
+        
+        opcode = 7'b0110011; 
+        funct7 = 7'b0000001;
+        
+        #(CLK_PERIOD/2) rst = 1; #(3*CLK_PERIOD/2) rst = 0;
+
+        $display("\n+-------------+------------+------------+-------+---------");
+        $display(  "| Instruction |  Expected  |   Answer   | Error | Time");
+        $display(  "+-------------+------------+------------+-------+---------");
         #1
+            // TestResult(32'h80000001, 32'h80010002, 4'b1111);
+            // #1
+        
+        for (int i=0 ; i<TESTS_NUM_h ; i=i+1) begin
+            #1
+            TestResult($urandom, $urandom, Instructions);
+            #1
+            Instructions = Instructions + 4'b0111;
+        end
 
-        $display(  "+--------+--------+------------+-------+--------");
-        $display(  "| Numero de Testes : %0d", TESTS_NUM_h);
-        $display(  "| Numero de Erros  : %0d", errors);
-        $display(  "+-----------------------------------------------\n");
 
-        $fdisplay(log_file,  "+--------+--------+------------+-------+--------");
-        $fdisplay(log_file,  "| Numero de Testes : %0d", TESTS_NUM_h);
-        $fdisplay(log_file,  "| Numero de Erros  : %0d", errors);
-        $fdisplay(log_file,  "+-----------------------------------------------\n");
+        
+        $display(  "| Number of Tests  : %0d", tests);
+        $display(  "| Number of Errors : %0d", errors);
+        $display(  "+---------------------------------------------------------");
         $finish;
 
-
+        
     end
 
 
