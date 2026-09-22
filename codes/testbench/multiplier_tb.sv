@@ -9,7 +9,7 @@ module multiplier_tb;
     `endif
 
 
-    logic clk, rst, sigA, sigB, upper, done, mult_on;
+    logic clk, rst, sigA, sigB, upper, done;
     logic [31:0] A_op, B_op, answer;
     logic [6:0] opcode, funct7;
     logic [2:0] funct3;
@@ -19,16 +19,15 @@ module multiplier_tb;
     logic [3:0] Instructions;
 
     multiplier_top DUT (
-        .clk_i      ( clk     ),
-        .rst_i      ( rst     ),
-        .mult_en_i  ( mult_on ),
-        .op_A_i     ( A_op    ),
-        .op_B_i     ( B_op    ),
+        // .clk_i      ( clk     ),
+        // .rst_i      ( rst     ),
+        .A_i        ( A_op    ),
+        .B_i        ( B_op    ),
         .signed_A_i ( sigA    ),
         .signed_B_i ( sigB    ),
         .upper_i    ( upper   ),
-        .result_o   ( answer  ),
-        .stall_o     ( done    )
+        .result_o   ( answer  )
+        //.stall_o     ( done    )
     );
 
     decoder decoder (
@@ -36,7 +35,7 @@ module multiplier_tb;
         .funct3_i    ( funct3  ),
         .funct7_i    ( funct7  ),
 
-        .mult_on_o   ( mult_on ),
+        //.mult_on_o   ( mult_on ),
         //.div_on_o    (  ),
         .signed_A_o  ( sigA    ),
         .signed_B_o  ( sigB    ),

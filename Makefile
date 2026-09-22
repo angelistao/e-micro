@@ -36,20 +36,10 @@ else ifeq ($(MULT), standard)
 endif
 
 
-multiplier_xcelium:
-	cd synthesis/work && \
-	rm -rf * && \
-	xrun -64bit -v200x -v93 -file $(flist_path) $(TESTS_DIR)/multiplier_tb.sv $(FLAGS) -top multiplier_tb
-
 multiplier_wrapper_xcelium:
 	cd synthesis/work && \
 	rm -rf * && \
-	xrun -64bit -v200x -v93 -file $(flist_path) $(CURDIR)/synthesis/inputs/multiplier_wrapper.v $(TESTS_DIR)/multiplier_wrapper_tb.sv $(FLAGS) -top multiplier_wrapper_tb
-
-cla_xcelium:
-	cd synthesis/work && \
-	rm -rf * && \
-	xrun -64bit -v200x -v93 $(ROOT)/codes/util/CLA_xBits.vhd $(TESTS_DIR)/CLA_xb_tb.vhd $(FLAGS) -top tb_cla_Xbits
+	xrun -64bit -v200x -v93 $(CURDIR)/codes/karatsuba_modular.vhd $(CURDIR)/codes/decoder.v $(CURDIR)/codes/multiplier.v $(TESTS_DIR)/multiplier_tb.sv $(FLAGS) -top multiplier_tb
 
 run_logical_synth:
 	cd ${ROOT}/synthesis/work && \
